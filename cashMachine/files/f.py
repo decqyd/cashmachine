@@ -451,23 +451,17 @@ def checkbalance(s):
     bal = data[accnum]["balance"]
     nbal = str("{:,}".format(bal))
     jbal = " ".join(i for i in nbal)
-    w = 200
-    font = "doh"
-    if len(jbal) < 15:
-        w = 250
-    elif len(jbal) < 20:
-        w = 300
-    elif len(jbal) < 50:
-        font = "big"
-    else:
-        w = 100
-        font = "big"
+    w = 300
+
     strtp = f"$ {jbal}"
-    tlp(
-        s,
-        pyfiglet.figlet_format(strtp, font=font, width=w),
-        -len(strtp) // 2,
-    )
+    try:
+        font = "doh"
+        tlp(s, pyfiglet.figlet_format(strtp, font=font, width=w))
+    except:
+        s.border()
+        font = "slant"
+        tlp(s, pyfiglet.figlet_format(strtp, font=font, width=w))
+
     s.refresh()
     s.getch()
     s.clear()
@@ -512,11 +506,10 @@ def transfer(s):
     cursesbreak(s)
     clear()
     lineprint(transferv)
-    print("\nEnter the account number you want to transfer to \n")
+    print("\nEnter the account number/name you want to transfer to \n")
 
     try:
         acc = input("> ")
-
         with open("data.json", "r+") as f:
             data = json.load(f)
             if acc not in data:
@@ -540,7 +533,11 @@ def transfer(s):
                         f.seek(0)
                         json.dump(data, f, indent=4)
                         f.truncate()
-                        print("\nTransfered ${:,} to account {}.\n".format(amount, acc))
+                        print(
+                            "\nTransfered ${:,} to account {}.\n".format(
+                                amount, data[acc]["name"]
+                            )
+                        )
                         f.close()
                         time.sleep(1.5)
                         print(
@@ -605,12 +602,69 @@ def cursesbreak(s):
 def login(s):
     cursesbreak(s)
     lineprint(loginv)
-    print("\n\n Account Number: \n")
+    print("\n\n Account Number/Account Name: \n")
     global accnum
+    global loggedin
     try:
         accnum = input("> ")
-        print("\n\n PIN: \n")
-        pin = int(input("> "))
+        if accnum.isdigit():
+            with open("data.json", "r") as f:
+                data = json.load(f)
+                if accnum not in data:
+                    print("Account does not exist")
+                    time.sleep(0.5)
+                    login(s)
+                else:
+                    print("\n Pin: \n")
+                    pin = input("> ")
+                    if pin.isdigit():
+                        if pin == str(data[accnum]["pin"]):
+                            print("\nLogin successful!")
+                            time.sleep(1)
+
+                            loggedin = True
+                            os.system("cls")
+                            f.close()
+                            wrapper(main.main(s))
+                        else:
+                            print("Incorrect pin")
+                            time.sleep(0.5)
+                            login(s)
+                    else:
+                        print("Please enter a number")
+                        time.sleep(0.5)
+                        login(s)
+        else:
+            print("\n\n PIN: \n")
+            pin = int(input("> "))
+            with open("data.json", "r") as f:
+                data = json.load(f)
+                for i in data:
+                    if accnum == data[i]["name"]:
+                        accnum = i
+                        if pin == data[i]["pin"]:
+                            verified = True
+                            print("\nLogin successful!")
+                            time.sleep(1)
+                            loggedin = True
+                            os.system("cls")
+                            f.close()
+                            wrapper(main.main(s))
+                            break
+                        else:
+                            print("\nIncorrect PIN!")
+                            verified = False
+                            time.sleep(1)
+                            os.system("cls")
+                            login(s)
+                    else:
+                        verified = False
+
+                if verified == False:
+                    print("\nAccount not found!")
+                    time.sleep(1)
+                    os.system("cls")
+                    login(s)
     except ValueError:
         print("Please enter a number")
         time.sleep(0.5)
@@ -620,28 +674,6 @@ def login(s):
         time.sleep(0.5)
         clear()
         wrapper(main.main(s))
-
-    with open("data.json", "r") as f:
-        data = json.load(f)
-    if accnum in data:
-        if pin == data[accnum]["pin"]:
-            print("\nLogin successful!")
-            time.sleep(1)
-            global loggedin
-            loggedin = True
-            os.system("cls")
-            f.close()
-            wrapper(main.main(s))
-        else:
-            print("\nIncorrect PIN!")
-            time.sleep(1)
-            os.system("cls")
-            login(s)
-    else:
-        print("\nAccount not found!")
-        time.sleep(1)
-        os.system("cls")
-        login(s)
 
 
 def signup(s):
