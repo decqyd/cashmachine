@@ -11,16 +11,14 @@ import f
 
 def main(s):
     f.p_init(s)
-
-    sleep(0.5)
-
-    f.loading(s)
-    f.l(s)
-
-    s.getch()
+    s.addstr(str(f.loggedin))
+    if not f.loggedin:
+        f.loading(s)
+        f.l(s)
+    elif f.loggedin:
+        f.loading(s)
+        f.menu(s)
 
 
 if __name__ == "__main__":
-
     wrapper(main)
-

@@ -1,14 +1,18 @@
 ####  IMPORTS  ####
+from re import S
 import smtplib, ssl  # emails
 import curses  # cli
 from curses import wrapper  # cli
 from curses.textpad import Textbox, rectangle  # cli user input
-import sys, time  # obvious
+import sys, time, os  # obvious
 import main
 import json
 
 #################
 ####  VARIABLES  ####
+
+global loggedin
+loggedin = False
 
 colours = {
     1: curses.COLOR_BLACK,
@@ -51,6 +55,13 @@ m = ["View Balance", "Deposit", "Withdraw", "Transfer", "Change PIN", "Exit"]
 ls = ["Login", "Sign Up", "Exit"]
 ####################
 ####  FUNCTIONS  ####
+
+
+def lineprint(t):
+    for i in t:
+        sys.stdout.write(i)
+        sys.stdout.flush()
+    time.sleep(0.1)
 
 
 def l(s):
@@ -161,6 +172,7 @@ def getmiddle(s):
 # menu
 def menu(s):
     s.clear()
+    curses.noecho()
     curses.curs_set(0)
     cri = 0
     s.border()
@@ -292,56 +304,37 @@ def transfer(s):
 
 
 def login(s):
-    # login
-    ct = []
-    print(ct)
-    y, x = getmiddle(s)
-    while True:
-        newy = y
-        s.clear()
-        s.border()
-        try:
-
-            for line in loginv.splitlines():
-                s.addstr(newy - 18, x - (len(line) // 2), line)
-                newy += 1
-                s.refresh()
-            win = curses.newwin(1, 39, y - 9, x - 19)
-            win.border()
-            s.addstr(y - 11, x - len("Account Number") // 2, "Account Number")
-            rectangle(s, y - 10, x - 20, y - 8, x + 20)
-            s.addstr(y - 3, x - len("PIN") // 2, "PIN")
-            rectangle(s, y - 2, x - 20, y, x + 20)
-            s.refresh()
-            # y, x = getmiddle(s)
-            for char in ct:
-                s.addstr(y, x, char, curses.color_pair(1))
-
-            s.refresh()
-            key = s.getkey()
-            if ord(key) == 27:
-                quit(s)
-            ct.append(key)
-
-            """ y, x = getmiddle(s)
-            y2 = y + 2
-            x2 = x - 7
-            with open("data.json", "r+") as f:
-                data = json.load(f)
-                if text in data:
-                    s.addstr(y2, x2, "Found account!")
-                    s.refresh()
-                else:
-                    s.addstr(y2, x2 - 9, "Name not found! Please try again!")
-                    s.refresh()
-            s.getch() """
-
-        except curses.error:
-            print("Screen too small! Please re-size your window and try again :)")
+    # close curses window to allow for input
+    curses.nocbreak()
+    s.keypad(False)
+    curses.echo()
+    curses.endwin()
+    os.system("cls")
+    lineprint(loginv)
+    print("\n\n Account Number: \n")
+    accnum = input("> ")
+    print("\n\n PIN: \n")
+    pin = int(input("> "))
+    with open("data.json", "r") as f:
+        data = json.load(f)
+    if accnum in data:
+        if pin == data[accnum]["pin"]:
+            print("Login successful!")
             time.sleep(1)
-            sys.exit()
-        except Exception as e:
-            print("There as an error, please try again :) " + str(e))
+            global loggedin
+            loggedin = True
+            os.system("cls")
+            wrapper(main.main(s))
+        else:
+            print("Incorrect PIN!")
+            time.sleep(1)
+            os.system("cls")
+            login(s)
+    else:
+        print("Account not found!")
+        time.sleep(1)
+        os.system("cls")
+        login(s)
 
 
 def signup(s):
