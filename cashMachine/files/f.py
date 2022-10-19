@@ -54,17 +54,58 @@ loginv = """             _,.---._         _,---.   .=-.-..-._
 /==/ - , ,/'.='. -   .'  /==/ _  ,  //==/. //==/, | |- |  
 `--`-----'   `--`--''    `--`------' `--`-` `--`./  `--`  """
 
-m = ["View Balance", "Deposit", "Withdraw", "Transfer", "Change PIN", "Exit"]
+depositv = """ .S_sSSs      sSSs   .S_sSSs      sSSs_sSSs      sSSs   .S  sdSS_SSSSSSbs  
+.SS~YS%%b    d%%SP  .SS~YS%%b    d%%SP~YS%%b    d%%SP  .SS  YSSS~S%SSSSSP  
+S%S   `S%b  d%S'    S%S   `S%b  d%S'     `S%b  d%S'    S%S       S%S       
+S%S    S%S  S%S     S%S    S%S  S%S       S%S  S%|     S%S       S%S       
+S%S    S&S  S&S     S%S    d*S  S&S       S&S  S&S     S&S       S&S       
+S&S    S&S  S&S_Ss  S&S   .S*S  S&S       S&S  Y&Ss    S&S       S&S       
+S&S    S&S  S&S~SP  S&S_sdSSS   S&S       S&S  `S&&S   S&S       S&S       
+S&S    S&S  S&S     S&S~YSSY    S&S       S&S    `S*S  S&S       S&S       
+S*S    d*S  S*b     S*S         S*b       d*S     l*S  S*S       S*S       
+S*S   .S*S  S*S.    S*S         S*S.     .S*S    .S*P  S*S       S*S       
+S*S_sdSSS    SSSbs  S*S          SSSbs_sdSSS   sSS*S   S*S       S*S       
+SSS~YSSY      YSSP  S*S           YSSP~YSSY    YSS'    S*S       S*S       
+                    SP                                 SP        SP        
+                    Y                                  Y         Y """
+
+withdrawv = """██╗    ██╗██╗████████╗██╗  ██╗██████╗ ██████╗  █████╗ ██╗    ██╗
+██║    ██║██║╚══██╔══╝██║  ██║██╔══██╗██╔══██╗██╔══██╗██║    ██║
+██║ █╗ ██║██║   ██║   ███████║██║  ██║██████╔╝███████║██║ █╗ ██║
+██║███╗██║██║   ██║   ██╔══██║██║  ██║██╔══██╗██╔══██║██║███╗██║
+╚███╔███╔╝██║   ██║   ██║  ██║██████╔╝██║  ██║██║  ██║╚███╔███╔╝
+ ╚══╝╚══╝ ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝ ╚══╝╚══╝ """
+
+changepinv = """  ______   __    __   ______   __    __   ______   ________        _______   ______  __    __ 
+ /      \ /  |  /  | /      \ /  \  /  | /      \ /        |      /       \ /      |/  \  /  |
+/$$$$$$  |$$ |  $$ |/$$$$$$  |$$  \ $$ |/$$$$$$  |$$$$$$$$/       $$$$$$$  |$$$$$$/ $$  \ $$ |
+$$ |  $$/ $$ |__$$ |$$ |__$$ |$$$  \$$ |$$ | _$$/ $$ |__          $$ |__$$ |  $$ |  $$$  \$$ |
+$$ |      $$    $$ |$$    $$ |$$$$  $$ |$$ |/    |$$    |         $$    $$/   $$ |  $$$$  $$ |
+$$ |   __ $$$$$$$$ |$$$$$$$$ |$$ $$ $$ |$$ |$$$$ |$$$$$/          $$$$$$$/    $$ |  $$ $$ $$ |
+$$ \__/  |$$ |  $$ |$$ |  $$ |$$ |$$$$ |$$ \__$$ |$$ |_____       $$ |       _$$ |_ $$ |$$$$ |
+$$    $$/ $$ |  $$ |$$ |  $$ |$$ | $$$ |$$    $$/ $$       |      $$ |      / $$   |$$ | $$$ |
+ $$$$$$/  $$/   $$/ $$/   $$/ $$/   $$/  $$$$$$/  $$$$$$$$/       $$/       $$$$$$/ $$/   $$/ """
+
+m = [
+    "View Balance",
+    "Deposit",
+    "Withdraw",
+    "Transfer",
+    "Change PIN",
+    "Sign Out",
+    "Exit",
+]
 ls = ["Login", "Sign Up", "Exit"]
 ####################
 ####  FUNCTIONS  ####
 
 
 def lineprint(t):
-    for i in t:
+    for i in t.splitlines():
         sys.stdout.write(i)
         sys.stdout.flush()
-    time.sleep(0.1)
+        sys.stdout.write("\n")
+        time.sleep(0.01)
 
 
 def l(s):
@@ -122,7 +163,7 @@ def l(s):
 
         # set key q to exit
         elif key == ord("q"):
-            sys.exit()
+            quit(s)
         s.refresh()
 
 
@@ -201,6 +242,11 @@ def menu(s):
             y += 1
             s.refresh()
         y += 5
+        f = open("data.json", "r")
+        data = json.load(f)
+        name = data[accnum]["name"]
+        strtp = f"Welcome, {name}!"
+        s.addstr(y - 6, x - (len(strtp) // 2), strtp)
         s.border()
         for i, r in enumerate(m):
             w = x - len(r) // 2
@@ -236,12 +282,15 @@ def menu(s):
             elif cri == 4:
                 changepin(s)
             elif cri == 5:
-                exit(s)
+                signout(s)
+            elif cri == 6:
+                quit(s)
+
             s.refresh()
 
         # set key q to exit
         elif key == ord("q"):
-            sys.exit()
+            quit(s)
         s.refresh()
 
 
@@ -265,22 +314,118 @@ def tlp(s, t, ymod=0, xmod=0):
 
 def quit(s):
     s.clear()
+    cursesbreak(s)
     sys.exit()
 
 
 def withdraw(s):
+    cursesbreak(s)
+    clear()
+    lineprint(withdrawv)
+    print("\n How much would you like to withdraw? (Type all to withdraw all)\n")
+    amount = input("> ")
+    try:
+        amount = int(amount)
+        with open("data.json", "r+") as f:
+            data = json.load(f)
+            cash = data[accnum]["cash"]
+
+            if amount > int(data[accnum]["balance"]):
+                print(
+                    "\n The amount you entered is more than you currently have in your bank. \n"
+                )
+                time.sleep(0.5)
+                print(
+                    "Withdrawing the maximum amount of money you have in your bank... \n"
+                )
+                time.sleep(1)
+
+                amount = data[accnum]["balance"]
+
+            data[accnum]["balance"] -= amount
+            data[accnum]["cash"] += amount
+
+            f.seek(0)
+            json.dump(data, f, indent=4)
+            f.truncate()
+            print(
+                "\n Withdrew ${:,} from your account.\n You now have ${:,} in cash.".format(
+                    amount, cash
+                )
+            )
+            f.close()
+            time.sleep(1.5)
+            clear()
+            wrapper(main.main(s))
+    except ValueError:
+        if "all" in amount:
+            with open("data.json", "r+") as f:
+                data = json.load(f)
+                cash = data[accnum]["cash"]
+
+                amount = data[accnum]["balance"]
+
+                data[accnum]["balance"] -= amount
+                data[accnum]["cash"] += amount
+
+                f.seek(0)
+                json.dump(data, f, indent=4)
+                f.truncate()
+                print(
+                    "\n Withdrew ${:,} from your account.\n You now have ${:,} in cash.".format(
+                        amount, cash
+                    )
+                )
+                f.close()
+                time.sleep(1.5)
+                clear()
+                wrapper(main.main(s))
+        else:
+            print("Please enter a number")
+            time.sleep(0.5)
+            withdraw(s)
+    except KeyboardInterrupt:
+        print("\nExiting...")
+        time.sleep(0.5)
+        clear()
+        wrapper(main.main(s))
+
+
+def signout(s):
     s.clear()
-    s.addstr(0, 0, "Withdraw")
-    s.refresh()
-    s.getch()
+    global loggedin
+    loggedin = False
+    cursesbreak(s)
+    wrapper(main.main(s))
 
 
 def deposit(s):
-    # deposit
-    s.clear()
-    s.addstr("Deposit")
-    s.refresh()
-    s.getch()
+    cursesbreak(s)
+    clear()
+    lineprint(depositv)
+    print("\n How much would you like to deposit? \n")
+    try:
+        amount = int(input("> "))
+        with open("data.json", "r+") as f:
+            data = json.load(f)
+            data[accnum]["balance"] += amount
+            f.seek(0)
+            json.dump(data, f, indent=4)
+            f.truncate()
+            print("\nDeposited ${:,} into your account.\n".format(amount))
+            f.close()
+            time.sleep(1.5)
+            clear()
+            wrapper(main.main(s))
+    except ValueError:
+        print("Please enter a valid number")
+        time.sleep(0.5)
+        deposit(s)
+    except KeyboardInterrupt:
+        print("\nExiting...")
+        time.sleep(0.5)
+        clear()
+        wrapper(main.main(s))
 
 
 def checkbalance(s):
@@ -290,21 +435,66 @@ def checkbalance(s):
     s.border()
     with open("data.json", "r") as f:
         data = json.load(f)
-    s.addstr(y - 12, x - 8, "Your balance is ")
+    s.addstr(y - 20, x - 8, "Your balance is ")
     # pyfiglet prints the balance in size 5
-    bal = str(data[accnum]["balance"])
-    tlp(s, pyfiglet.figlet_format(f"${bal}", font="doh", width=200), -len(bal) // 2)
+    bal = data[accnum]["balance"]
+    nbal = str("{:,}".format(bal))
+    jbal = " ".join(i for i in nbal)
+    w = 200
+    font = "doh"
+    if len(jbal) < 15:
+        w = 250
+    elif len(jbal) < 20:
+        w = 300
+    elif len(jbal) < 50:
+        font = "big"
+    else:
+        w = 100
+        font = "big"
+    strtp = f"$ {jbal}"
+    tlp(
+        s,
+        pyfiglet.figlet_format(strtp, font=font, width=w),
+        -len(strtp) // 2,
+    )
     s.refresh()
     s.getch()
     s.clear()
 
 
 def changepin(s):
-    # change pin
-    s.clear()
-    s.addstr("Change PIN")
-    s.refresh()
-    s.getch()
+    cursesbreak(s)
+    clear()
+    lineprint(changepinv)
+    print("\nEnter your new pin \n")
+    with open("data.json", "r+") as f:
+        data = json.load(f)
+        print("You current pin is {}".format(data[accnum]["pin"]))
+        try:
+            pin = int(input("> "))
+            if str(len(pin)) != 4:
+                print("Please enter a 4 digit pin")
+                time.sleep(0.5)
+                changepin(s)
+            else:
+                data[accnum]["pin"] = pin
+                f.seek(0)
+                json.dump(data, f, indent=4)
+                f.truncate()
+                print("\nChanged pin to {}.\n".format(pin))
+                f.close()
+                time.sleep(1.5)
+                clear()
+                wrapper(main.main(s))
+        except ValueError:
+            print("Please enter a number")
+            time.sleep(0.5)
+            changepin(s)
+        except KeyboardInterrupt:
+            print("\nExiting...")
+            time.sleep(0.5)
+            clear()
+            wrapper(main.main(s))
 
 
 def transfer(s):
@@ -329,9 +519,20 @@ def login(s):
     lineprint(loginv)
     print("\n\n Account Number: \n")
     global accnum
-    accnum = input("> ")
-    print("\n\n PIN: \n")
-    pin = int(input("> "))
+    try:
+        accnum = input("> ")
+        print("\n\n PIN: \n")
+        pin = int(input("> "))
+    except ValueError:
+        print("Please enter a number")
+        time.sleep(0.5)
+        login(s)
+    except KeyboardInterrupt:
+        print("\nExiting...")
+        time.sleep(0.5)
+        clear()
+        wrapper(main.main(s))
+
     with open("data.json", "r") as f:
         data = json.load(f)
     if accnum in data:
@@ -341,6 +542,7 @@ def login(s):
             global loggedin
             loggedin = True
             os.system("cls")
+            f.close()
             wrapper(main.main(s))
         else:
             print("\nIncorrect PIN!")
@@ -361,3 +563,7 @@ def signup(s):
     s.addstr("sign up")
     s.refresh()
     s.getch()
+
+
+def clear():
+    os.system("cls")
