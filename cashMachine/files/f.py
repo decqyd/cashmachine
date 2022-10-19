@@ -91,6 +91,12 @@ signupv = """    ___     __     ___      _  _         _  _      ___
  J\______JJ____LJ\_____/FJ__L \\__L   J\______/FJ__|    
   J______F|____| J_____F |__L  J__|    J______F |__L"""
 
+transferv = """|''||''| '||''|.       |     '|.   '|'  .|'''.|  '||''''| '||''''|  '||''|.   
+   ||     ||   ||     |||     |'|   |   ||..  '   ||  .    ||  .     ||   ||  
+   ||     ||''|'     |  ||    | '|. |    ''|||.   ||''|    ||''|     ||''|'   
+   ||     ||   |.   .''''|.   |   |||  .     '||  ||       ||        ||   |.  
+  .||.   .||.  '|' .|.  .||. .|.   '|  |'....|'  .||.     .||.....| .||.  '|' """
+
 m = [
     "View Balance",
     "Deposit",
@@ -309,8 +315,8 @@ def tlp(s, t, ymod=0, xmod=0):
             y += 1
             s.refresh()
             time.sleep(0.1)
-    except curses.error:
-        print("Screen too small! Please re-size your window and try again :)")
+    except curses.error as e:
+        print(e)
         time.sleep(1)
         sys.exit()
     except:
@@ -503,11 +509,89 @@ def changepin(s):
 
 
 def transfer(s):
-    # transfer
-    s.clear()
-    s.addstr("Transfer")
-    s.refresh()
-    s.getch()
+    cursesbreak(s)
+    clear()
+    lineprint(transferv)
+    print("\nEnter the account number you want to transfer to \n")
+
+    try:
+        acc = input("> ")
+
+        with open("data.json", "r+") as f:
+            data = json.load(f)
+            if acc not in data:
+                print("Account does not exist")
+                time.sleep(0.5)
+                transfer(s)
+            else:
+                print(
+                    "How much would you like to transfer? (type all to tranfer all money) \n"
+                )
+                amount = input("> ")
+                try:
+                    amount = int(amount)
+                    if amount > data[accnum]["balance"]:
+                        print("You do not have enough money in your account")
+                        time.sleep(0.5)
+                        transfer(s)
+                    else:
+                        data[accnum]["balance"] -= amount
+                        data[acc]["balance"] += amount
+                        f.seek(0)
+                        json.dump(data, f, indent=4)
+                        f.truncate()
+                        print("\nTransfered ${:,} to account {}.\n".format(amount, acc))
+                        f.close()
+                        time.sleep(1.5)
+                        print(
+                            "\nYou have ${:,} left in your account.\n".format(
+                                data[accnum]["balance"]
+                            )
+                        )
+                        clear()
+                        wrapper(main.main(s))
+                except ValueError:
+                    if "all" in amount:
+                        with open("data.json", "r+") as f:
+                            data = json.load(f)
+                            cash = data[accnum]["cash"]
+
+                            amount = data[accnum]["balance"]
+
+                            data[accnum]["balance"] -= amount
+                            data[acc]["balance"] += amount
+
+                            f.seek(0)
+                            json.dump(data, f, indent=4)
+                            f.truncate()
+                            print(
+                                "\n Transfered ${:,} to account {}.\n".format(
+                                    amount, acc
+                                )
+                            )
+                            f.close()
+                            time.sleep(1.5)
+                            print("You have no money left in your account")
+                            clear()
+                            wrapper(main.main(s))
+                    else:
+                        print("Please enter a number")
+                        time.sleep(0.5)
+                        transfer(s)
+                except KeyboardInterrupt:
+                    print("\nExiting...")
+                    time.sleep(0.5)
+                    clear()
+                    wrapper(main.main(s))
+    except ValueError:
+        print("Please enter a number")
+        time.sleep(0.5)
+        transfer(s)
+    except KeyboardInterrupt:
+        print("\nExiting...")
+        time.sleep(0.5)
+        clear()
+        wrapper(main.main(s))
 
 
 def cursesbreak(s):
