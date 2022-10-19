@@ -11,7 +11,10 @@ import f
 
 def main(s):
     f.p_init(s)
-    s.addstr(str(f.loggedin))
+    curses.noecho()
+    curses.cbreak()
+    s.keypad(True)
+    s.refresh()
     if not f.loggedin:
         f.loading(s)
         f.l(s)

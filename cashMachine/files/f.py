@@ -7,12 +7,15 @@ from curses.textpad import Textbox, rectangle  # cli user input
 import sys, time, os  # obvious
 import main
 import json
+import pyfiglet
+import shutil
 
 #################
 ####  VARIABLES  ####
 
 global loggedin
 loggedin = False
+
 
 colours = {
     1: curses.COLOR_BLACK,
@@ -172,7 +175,6 @@ def getmiddle(s):
 # menu
 def menu(s):
     s.clear()
-    curses.noecho()
     curses.curs_set(0)
     cri = 0
     s.border()
@@ -243,8 +245,10 @@ def menu(s):
         s.refresh()
 
 
-def tlp(s, t):
+def tlp(s, t, ymod=0, xmod=0):
     y, x = getmiddle(s)
+    y += ymod
+    x += xmod
     try:
         for line in t.splitlines():
             s.addstr(y - 3, x - (len(line) // 2), line)
@@ -281,10 +285,18 @@ def deposit(s):
 
 def checkbalance(s):
     # check balance
+    y, x = getmiddle(s)
     s.clear()
-    s.addstr("Your balance is £0")
+    s.border()
+    with open("data.json", "r") as f:
+        data = json.load(f)
+    s.addstr(y - 12, x - 8, "Your balance is ")
+    # pyfiglet prints the balance in size 5
+    bal = str(data[accnum]["balance"])
+    tlp(s, pyfiglet.figlet_format(f"${bal}", font="doh", width=200), -len(bal) // 2)
     s.refresh()
     s.getch()
+    s.clear()
 
 
 def changepin(s):
@@ -303,15 +315,20 @@ def transfer(s):
     s.getch()
 
 
-def login(s):
-    # close curses window to allow for input
+def cursesbreak(s):
     curses.nocbreak()
     s.keypad(False)
     curses.echo()
     curses.endwin()
     os.system("cls")
+
+
+def login(s):
+    # close curses window to allow for input
+    cursesbreak(s)
     lineprint(loginv)
     print("\n\n Account Number: \n")
+    global accnum
     accnum = input("> ")
     print("\n\n PIN: \n")
     pin = int(input("> "))
@@ -319,19 +336,19 @@ def login(s):
         data = json.load(f)
     if accnum in data:
         if pin == data[accnum]["pin"]:
-            print("Login successful!")
+            print("\nLogin successful!")
             time.sleep(1)
             global loggedin
             loggedin = True
             os.system("cls")
             wrapper(main.main(s))
         else:
-            print("Incorrect PIN!")
+            print("\nIncorrect PIN!")
             time.sleep(1)
             os.system("cls")
             login(s)
     else:
-        print("Account not found!")
+        print("\nAccount not found!")
         time.sleep(1)
         os.system("cls")
         login(s)
