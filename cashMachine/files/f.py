@@ -86,6 +86,14 @@ $$ \__/  |$$ |  $$ |$$ |  $$ |$$ |$$$$ |$$ \__$$ |$$ |_____       $$ |       _$$
 $$    $$/ $$ |  $$ |$$ |  $$ |$$ | $$$ |$$    $$/ $$       |      $$ |      / $$   |$$ | $$$ |
  $$$$$$/  $$/   $$/ $$/   $$/ $$/   $$/  $$$$$$/  $$$$$$$$/       $$/       $$$$$$/ $$/   $$/ """
 
+signupv = """    ___     __     ___      _  _         _  _      ___  
+   F __".   FJ   ,"___".   F L L]       FJ  L]    F _ ",
+  J (___|  J  L  FJ---L]  J   \| L     J |  | L  J `-' |
+  J\___ \  |  | J |  [""L | |\   |     | |  | |  |  __/F
+ .--___) \ F  J | \___] | F L\\  J     F L__J J  F |__/ 
+ J\______JJ____LJ\_____/FJ__L \\__L   J\______/FJ__|    
+  J______F|____| J_____F |__L  J__|    J______F |__L"""
+
 m = [
     "View Balance",
     "Deposit",
@@ -472,7 +480,7 @@ def changepin(s):
         print("You current pin is {}".format(data[accnum]["pin"]))
         try:
             pin = int(input("> "))
-            if str(len(pin)) != 4:
+            if len(str(pin)) != 4:
                 print("Please enter a 4 digit pin")
                 time.sleep(0.5)
                 changepin(s)
@@ -514,7 +522,6 @@ def cursesbreak(s):
 
 
 def login(s):
-    # close curses window to allow for input
     cursesbreak(s)
     lineprint(loginv)
     print("\n\n Account Number: \n")
@@ -557,12 +564,50 @@ def login(s):
 
 
 def signup(s):
-    # login
-    s.clear()
-    s.border()
-    s.addstr("sign up")
-    s.refresh()
-    s.getch()
+    cursesbreak(s)
+    lineprint(signupv)
+    try:
+        print("\n\n Name: \n")
+        name = input("> ")
+        print("\n\n Account Number: \n")
+        accnum = int(input("> "))
+        if len(str(accnum)) != 16:
+            print("Please enter a 16 digit account number")
+            time.sleep(0.5)
+            signup(s)
+        print("\n\n PIN: \n")
+        pin = int(input("> "))
+
+    except ValueError:
+        print("Please enter a number.")
+        time.sleep(0.5)
+        signup(s)
+    except KeyboardInterrupt:
+        print("\nExiting...")
+        time.sleep(0.5)
+        clear()
+        wrapper(main.main(s))
+    with open("data.json", "r+") as f:
+        data = json.load(f)
+        if accnum in data:
+            print("\nAccount already exists!")
+            time.sleep(1)
+            os.system("cls")
+            signup(s)
+        else:
+            data[accnum] = {}
+            data[accnum]["name"] = name
+            data[accnum]["pin"] = pin
+            data[accnum]["balance"] = 0
+            data[accnum]["cash"] = 0
+            f.seek(0)
+            json.dump(data, f, indent=4)
+            f.truncate()
+            print(f"\nAccount {name} created!")
+            time.sleep(1)
+            os.system("cls")
+            f.close()
+            wrapper(main.main(s))
 
 
 def clear():
